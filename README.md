@@ -1,6 +1,11 @@
 # DevDeck
 
 DevDeck is a minimalist, single-page browser workstation dashboard built to serve as a primary productivity hub. It consolidates search queries, essential documentation links, quick bookmarks, and a persistent scratchpad into a clean interface.
+---
+
+## Live Demo
+
+* **Personal Deployment:** [devdeck.edgeone.dev](https://devdeck.edgeone.dev)
 
 ---
 
