@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DevDeck — Workstation Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="app-layout">
+    <header class="topbar">
+      <div class="brand">
+        <span class="dot"></span>
+        <span class="title">DevDeck</span>
+      </div>
+
+      <div class="clock-readout">
+        <span id="clockLocal">00:00:00</span>
+        <span class="sep">/</span>
+        <span id="clockUtc">00:00 UTC</span>
+      </div>
+
+      <div class="top-actions">
+        <button id="btnExport" class="btn btn-ghost">Export</button>
+        <button id="btnImport" class="btn btn-ghost">Import</button>
+      </div>
+    </header>
+
+    <div class="search-section">
+      <div class="search-input-wrap">
+        <select id="searchEngine">
+          <option value="google">Google</option>
+          <option value="so">StackOverflow</option>
+          <option value="mdn">MDN Docs</option>
+          <option value="gh">GitHub</option>
+          <option value="fg">Figma</option>
+        </select>
+        <input type="text" id="queryInput" placeholder="Search or prefix (gh:, so:, mdn:, fg:)..." autofocus>
+        <button id="btnSearch" class="btn btn-primary">Search</button>
+      </div>
+    </div>
+
+    <main class="dashboard-grid">
+      <section class="card">
+        <div class="card-header">
+          <h4>Frequent Hubs</h4>
+        </div>
+        <div class="card-body pinned-links">
+          <a href="https://github.com" target="_blank" class="hub-item">
+            <img src="https://www.google.com/s2/favicons?domain=github.com&sz=32" alt="">
+            <span>GitHub</span>
+          </a>
+          <a href="https://stackoverflow.com" target="_blank" class="hub-item">
+            <img src="https://www.google.com/s2/favicons?domain=stackoverflow.com&sz=32" alt="">
+            <span>StackOverflow</span>
+          </a>
+          <a href="https://developer.mozilla.org" target="_blank" class="hub-item">
+            <img src="https://www.google.com/s2/favicons?domain=developer.mozilla.org&sz=32" alt="">
+            <span>MDN Web Docs</span>
+          </a>
+          <a href="https://codepen.io" target="_blank" class="hub-item">
+            <img src="https://www.google.com/s2/favicons?domain=codepen.io&sz=32" alt="">
+            <span>CodePen</span>
+          </a>
+          <a href="https://figma.com" target="_blank" class="hub-item">
+            <img src="https://www.google.com/s2/favicons?domain=figma.com&sz=32" alt="">
+            <span>Figma</span>
+          </a>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-header">
+          <h4>Bookmarks</h4>
+        </div>
+        <div class="card-body">
+          <ul id="bookmarkList" class="bookmark-list"></ul>
+          <form id="addBookmarkForm" class="bookmark-form">
+            <input type="text" id="bmName" placeholder="Label" required>
+            <input type="url" id="bmUrl" placeholder="https://..." required>
+            <button type="submit" class="btn btn-primary">+</button>
+          </form>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-header">
+          <h4>Quick Notes</h4>
+        </div>
+        <div class="card-body">
+          <textarea id="notesArea" placeholder="Scratchpad for endpoints, tokens, commands..."></textarea>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
