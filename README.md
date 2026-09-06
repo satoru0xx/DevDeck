@@ -5,7 +5,7 @@ DevDeck is a minimalist, single-page browser workstation dashboard built to serv
 
 ## Live Demo
 
-* **Personal Deployment:** [devdeck.edgeone.dev](https://devdeck.edgeone.dev)
+* **Personal Deployment:** [deckdev.edgeone.dev](https://deckdev.edgeone.dev)
 
 ---
 
