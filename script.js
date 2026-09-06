@@ -1,188 +1,224 @@
-// Application State
-const state = {
+
+const STORAGE_KEYS = {
+  NOTES: 'devdeck_notes',
+  BOOKMARKS: 'devdeck_bm'
+};
+
+const SEARCH_PROVIDERS = {
+  google: query => `https://www.google.com/search?q=${query}`,
+  so: query => `https://stackoverflow.com/search?q=${query}`,
+  mdn: query => `https://developer.mozilla.org/en-US/search?q=${query}`,
+  gh: query => `https://github.com/search?q=${query}`,
+  fg: query => `https://www.figma.com/search?q=${query}`
+};
+
+const PREFIX_MAP = {
+  'gh:': 'gh',
+  'so:': 'so',
+  'mdn:': 'mdn',
+  'fg:': 'fg'
+};
+
+const appState = {
   bookmarks: [],
   notes: ''
 };
 
-// LocalStorage Handlers
-function loadState() {
-  state.notes = localStorage.getItem('devdeck_notes') || '';
+function hydrateState() {
+  appState.notes = localStorage.getItem(STORAGE_KEYS.NOTES) || '';
   try {
-    state.bookmarks = JSON.parse(localStorage.getItem('devdeck_bm') || '[]');
-  } catch {
-    state.bookmarks = [];
+    const cachedBm = localStorage.getItem(STORAGE_KEYS.BOOKMARKS);
+    appState.bookmarks = cachedBm ? JSON.parse(cachedBm) : [];
+  } catch (err) {
+    console.error('Failed to parse cached bookmarks:', err);
+    appState.bookmarks = [];
   }
 }
 
-function saveBookmarks() {
-  localStorage.setItem('devdeck_bm', JSON.stringify(state.bookmarks));
+function persistBookmarks() {
+  localStorage.setItem(STORAGE_KEYS.BOOKMARKS, JSON.stringify(appState.bookmarks));
 }
 
-// Clock Updater
-function updateClocks() {
-  const now = new Date();
-  document.getElementById('clockLocal').textContent = now.toLocaleTimeString();
-  document.getElementById('clockUtc').textContent = `${now.toISOString().slice(11, 16)} UTC`;
+function refreshClockDisplays() {
+  const localEl = document.getElementById('localClock');
+  const utcEl = document.getElementById('utcClock');
+  const currentDate = new Date();
+
+  localEl.textContent = currentDate.toLocaleTimeString();
+  utcEl.textContent = `${currentDate.toISOString().slice(11, 16)} UTC`;
 }
 
-// Search Handler
-function handleSearch() {
-  const queryInput = document.getElementById('queryInput');
-  const engineSelect = document.getElementById('searchEngine');
+function executeSearch() {
+  const inputEl = document.getElementById('searchInput');
+  const providerSelect = document.getElementById('engineSelect');
 
-  let query = queryInput.value.trim();
-  let engine = engineSelect.value;
-  if (!query) return;
+  let rawQuery = inputEl.value.trim();
+  let selectedEngine = providerSelect.value;
 
-  const prefixes = { 'gh:': 'gh', 'so:': 'so', 'mdn:': 'mdn', 'fg:': 'fg' };
-  for (const prefix in prefixes) {
-    if (query.startsWith(prefix)) {
-      engine = prefixes[prefix];
-      query = query.slice(prefix.length).trim();
+  if (!rawQuery) return;
+  
+  for (const [prefix, engineKey] of Object.entries(PREFIX_MAP)) {
+    if (rawQuery.startsWith(prefix)) {
+      selectedEngine = engineKey;
+      rawQuery = rawQuery.slice(prefix.length).trim();
       break;
     }
   }
 
-  const encoded = encodeURIComponent(query);
-  const targets = {
-    google: `https://www.google.com/search?q=${encoded}`,
-    so: `https://stackoverflow.com/search?q=${encoded}`,
-    mdn: `https://developer.mozilla.org/en-US/search?q=${encoded}`,
-    gh: `https://github.com/search?q=${encoded}`,
-    fg: `https://www.figma.com/search?q=${encoded}`
-  };
+  const encodedQuery = encodeURIComponent(rawQuery);
+  const targetResolver = SEARCH_PROVIDERS[selectedEngine] || SEARCH_PROVIDERS.google;
 
-  window.open(targets[engine] || targets.google, '_blank');
+  window.open(targetResolver(encodedQuery), '_blank');
 }
 
-// Render Bookmarks List
-function renderBookmarks() {
-  const listEl = document.getElementById('bookmarkList');
-  listEl.innerHTML = '';
 
-  state.bookmarks.forEach((bm, index) => {
+function renderBookmarkList() {
+  const container = document.getElementById('bookmarkList');
+  container.replaceChildren();
+
+  appState.bookmarks.forEach((item, idx) => {
     let hostname = 'link';
-    try { 
-      hostname = new URL(bm.url).hostname; 
+    try {
+      hostname = new URL(item.url).hostname;
     } catch {}
 
-    const li = document.createElement('li');
-    li.className = 'bm-item';
-    li.innerHTML = `
-      <a href="${bm.url}" target="_blank" class="bm-link">
-        <img src="https://www.google.com/s2/favicons?domain=${hostname}&sz=32" alt="">
-        <span>${bm.name}</span>
-      </a>
-      <button class="remove-bm" title="Delete bookmark">&times;</button>
-    `;
+    const listRow = document.createElement('li');
+    listRow.className = 'bookmark-item';
 
-    li.querySelector('.remove-bm').addEventListener('click', () => {
-      state.bookmarks.splice(index, 1);
-      saveBookmarks();
-      renderBookmarks();
-    });
+    const anchor = document.createElement('a');
+    anchor.href = item.url;
+    anchor.target = '_blank';
+    anchor.rel = 'noopener';
+    anchor.className = 'bookmark-anchor';
 
-    listEl.appendChild(li);
+    const favicon = document.createElement('img');
+    favicon.src = `https://www.google.com/s2/favicons?domain=${hostname}&sz=32`;
+    favicon.alt = '';
+    favicon.width = 16;
+    favicon.height = 16;
+
+    const label = document.createElement('span');
+    label.textContent = item.name;
+
+    anchor.appendChild(favicon);
+    anchor.appendChild(label);
+
+    const removeBtn = document.createElement('button');
+    removeBtn.className = 'delete-bm-btn';
+    removeBtn.title = 'Delete bookmark';
+    removeBtn.innerHTML = '&times;';
+    removeBtn.dataset.index = idx;
+
+    listRow.appendChild(anchor);
+    listRow.appendChild(removeBtn);
+    container.appendChild(listRow);
   });
 }
 
-// Export / Import Data
-function exportData() {
-  const payload = JSON.stringify(state, null, 2);
-  const blob = new Blob([payload], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = 'devdeck-backup.json';
-  link.click();
-  URL.revokeObjectURL(url);
+function handleDataExport() {
+  const jsonStr = JSON.stringify(appState, null, 2);
+  const dataBlob = new Blob([jsonStr], { type: 'application/json' });
+  const objectUrl = URL.createObjectURL(dataBlob);
+
+  const downloadAnchor = document.createElement('a');
+  downloadAnchor.href = objectUrl;
+  downloadAnchor.download = `devdeck-config-${Date.now()}.json`;
+  downloadAnchor.click();
+
+  URL.revokeObjectURL(objectUrl);
 }
 
-function importData() {
-  const fileInput = document.createElement('input');
-  fileInput.type = 'file';
-  fileInput.accept = 'application/json';
+function handleDataImport() {
+  const filePicker = document.createElement('input');
+  filePicker.type = 'file';
+  filePicker.accept = 'application/json';
 
-  fileInput.onchange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+  filePicker.addEventListener('change', (e) => {
+    const targetFile = e.target.files[0];
+    if (!targetFile) return;
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
+    const fileReader = new FileReader();
+    fileReader.onload = (evt) => {
       try {
-        const parsed = JSON.parse(event.target.result);
-        if (typeof parsed.notes === 'string') {
-          state.notes = parsed.notes;
-          localStorage.setItem('devdeck_notes', state.notes);
-          document.getElementById('notesArea').value = state.notes;
+        const importedData = JSON.parse(evt.target.result);
+        
+        if (typeof importedData.notes === 'string') {
+          appState.notes = importedData.notes;
+          localStorage.setItem(STORAGE_KEYS.NOTES, appState.notes);
+          document.getElementById('scratchPad').value = appState.notes;
         }
-        if (Array.isArray(parsed.bookmarks)) {
-          state.bookmarks = parsed.bookmarks;
-          saveBookmarks();
-          renderBookmarks();
+
+        if (Array.isArray(importedData.bookmarks)) {
+          appState.bookmarks = importedData.bookmarks;
+          persistBookmarks();
+          renderBookmarkList();
         }
-      } catch {
-        alert('Invalid JSON file format.');
+      } catch (err) {
+        console.error('Import Error:', err);
       }
     };
-    reader.readAsText(file);
-  };
+    fileReader.readAsText(targetFile);
+  });
 
-  fileInput.click();
+  filePicker.click();
 }
 
-// Event Listeners Initialization
 document.addEventListener('DOMContentLoaded', () => {
-  loadState();
-
-  // Notes setup
-  const notesArea = document.getElementById('notesArea');
-  notesArea.value = state.notes;
-  notesArea.addEventListener('input', () => {
-    state.notes = notesArea.value;
-    localStorage.setItem('devdeck_notes', state.notes);
+  hydrateState();
+  
+  const notesField = document.getElementById('scratchPad');
+  notesField.value = appState.notes;
+  notesField.addEventListener('input', (e) => {
+    appState.notes = e.target.value;
+    localStorage.setItem(STORAGE_KEYS.NOTES, appState.notes);
   });
-
-  // Bookmark Form setup
-  document.getElementById('addBookmarkForm').addEventListener('submit', (e) => {
+  
+  document.getElementById('newBookmarkForm').addEventListener('submit', (e) => {
     e.preventDefault();
-    const nameInput = document.getElementById('bmName');
-    const urlInput = document.getElementById('bmUrl');
+    const titleInput = document.getElementById('bmTitle');
+    const urlInput = document.getElementById('bmTargetUrl');
 
-    let url = urlInput.value.trim();
-    if (!/^https?:\/\//i.test(url)) {
-      url = `https://${url}`;
+    let validUrl = urlInput.value.trim();
+    if (!/^https?:\/\//i.test(validUrl)) {
+      validUrl = `https://${validUrl}`;
     }
 
-    state.bookmarks.push({ name: nameInput.value.trim(), url });
-    saveBookmarks();
-    renderBookmarks();
+    appState.bookmarks.push({ name: titleInput.value.trim(), url: validUrl });
+    persistBookmarks();
+    renderBookmarkList();
 
-    nameInput.value = '';
+    titleInput.value = '';
     urlInput.value = '';
   });
+  
+  document.getElementById('bookmarkList').addEventListener('click', (e) => {
+    const deleteBtn = e.target.closest('.delete-bm-btn');
+    if (!deleteBtn) return;
 
-  // Search Listeners
-  document.getElementById('btnSearch').addEventListener('click', handleSearch);
-  document.getElementById('queryInput').addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') handleSearch();
+    const deleteIndex = parseInt(deleteBtn.dataset.index, 10);
+    if (!isNaN(deleteIndex)) {
+      appState.bookmarks.splice(deleteIndex, 1);
+      persistBookmarks();
+      renderBookmarkList();
+    }
   });
-
-  // Keyboard Shortcut: Cmd/Ctrl + K focus
+  
+  document.getElementById('searchTriggerBtn').addEventListener('click', executeSearch);
+  document.getElementById('searchInput').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') executeSearch();
+  });
+  
   document.addEventListener('keydown', (e) => {
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
       e.preventDefault();
-      document.getElementById('queryInput').focus();
+      document.getElementById('searchInput').focus();
     }
   });
-
-  // Export / Import Listeners
-  document.getElementById('btnExport').addEventListener('click', exportData);
-  document.getElementById('btnImport').addEventListener('click', importData);
-
-  // Initial Runs
-  renderBookmarks();
-  updateClocks();
-  setInterval(updateClocks, 1000);
+  
+  document.getElementById('exportConfigBtn').addEventListener('click', handleDataExport);
+  document.getElementById('importConfigBtn').addEventListener('click', handleDataImport);
+  
+  renderBookmarkList();
+  refreshClockDisplays();
+  setInterval(refreshClockDisplays, 1000);
 });

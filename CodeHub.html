@@ -11,85 +11,85 @@
   <div class="app-layout">
     <header class="topbar">
       <div class="brand">
-        <span class="dot"></span>
+        <span class="status-indicator"></span>
         <span class="title">DevDeck</span>
       </div>
 
-      <div class="clock-readout">
-        <span id="clockLocal">00:00:00</span>
-        <span class="sep">/</span>
-        <span id="clockUtc">00:00 UTC</span>
+      <div class="clock-display">
+        <span id="localClock">--:--:--</span>
+        <span class="divider">/</span>
+        <span id="utcClock">--:-- UTC</span>
       </div>
 
-      <div class="top-actions">
-        <button id="btnExport" class="btn btn-ghost">Export</button>
-        <button id="btnImport" class="btn btn-ghost">Import</button>
+      <div class="actions-group">
+        <button id="exportConfigBtn" class="action-btn">Export</button>
+        <button id="importConfigBtn" class="action-btn">Import</button>
       </div>
     </header>
 
-    <div class="search-section">
-      <div class="search-input-wrap">
-        <select id="searchEngine">
+    <div class="search-container">
+      <div class="search-bar">
+        <select id="engineSelect">
           <option value="google">Google</option>
           <option value="so">StackOverflow</option>
           <option value="mdn">MDN Docs</option>
           <option value="gh">GitHub</option>
           <option value="fg">Figma</option>
         </select>
-        <input type="text" id="queryInput" placeholder="Search or prefix (gh:, so:, mdn:, fg:)..." autofocus>
-        <button id="btnSearch" class="btn btn-primary">Search</button>
+        <input type="text" id="searchInput" placeholder="Search or use shortcuts (gh:, so:, mdn:, fg:)..." autofocus>
+        <button id="searchTriggerBtn" class="btn btn-primary">Search</button>
       </div>
     </div>
 
     <main class="dashboard-grid">
-      <section class="card">
-        <div class="card-header">
-          <h4>Frequent Hubs</h4>
+      <section class="panel">
+        <div class="panel-header">
+          <h2>Frequent Hubs</h2>
         </div>
-        <div class="card-body pinned-links">
-          <a href="https://github.com" target="_blank" class="hub-item">
-            <img src="https://www.google.com/s2/favicons?domain=github.com&sz=32" alt="">
+        <div class="panel-body static-links">
+          <a href="https://github.com" target="_blank" rel="noopener" class="hub-link">
+            <img src="https://www.google.com/s2/favicons?domain=github.com&sz=32" alt="" width="16" height="16">
             <span>GitHub</span>
           </a>
-          <a href="https://stackoverflow.com" target="_blank" class="hub-item">
-            <img src="https://www.google.com/s2/favicons?domain=stackoverflow.com&sz=32" alt="">
+          <a href="https://stackoverflow.com" target="_blank" rel="noopener" class="hub-link">
+            <img src="https://www.google.com/s2/favicons?domain=stackoverflow.com&sz=32" alt="" width="16" height="16">
             <span>StackOverflow</span>
           </a>
-          <a href="https://developer.mozilla.org" target="_blank" class="hub-item">
-            <img src="https://www.google.com/s2/favicons?domain=developer.mozilla.org&sz=32" alt="">
+          <a href="https://developer.mozilla.org" target="_blank" rel="noopener" class="hub-link">
+            <img src="https://www.google.com/s2/favicons?domain=developer.mozilla.org&sz=32" alt="" width="16" height="16">
             <span>MDN Web Docs</span>
           </a>
-          <a href="https://codepen.io" target="_blank" class="hub-item">
-            <img src="https://www.google.com/s2/favicons?domain=codepen.io&sz=32" alt="">
+          <a href="https://codepen.io" target="_blank" rel="noopener" class="hub-link">
+            <img src="https://www.google.com/s2/favicons?domain=codepen.io&sz=32" alt="" width="16" height="16">
             <span>CodePen</span>
           </a>
-          <a href="https://figma.com" target="_blank" class="hub-item">
-            <img src="https://www.google.com/s2/favicons?domain=figma.com&sz=32" alt="">
+          <a href="https://figma.com" target="_blank" rel="noopener" class="hub-link">
+            <img src="https://www.google.com/s2/favicons?domain=figma.com&sz=32" alt="" width="16" height="16">
             <span>Figma</span>
           </a>
         </div>
       </section>
 
-      <section class="card">
-        <div class="card-header">
-          <h4>Bookmarks</h4>
+      <section class="panel">
+        <div class="panel-header">
+          <h2>Bookmarks</h2>
         </div>
-        <div class="card-body">
-          <ul id="bookmarkList" class="bookmark-list"></ul>
-          <form id="addBookmarkForm" class="bookmark-form">
-            <input type="text" id="bmName" placeholder="Label" required>
-            <input type="url" id="bmUrl" placeholder="https://..." required>
+        <div class="panel-body">
+          <ul id="bookmarkList" class="bookmark-collection"></ul>
+          <form id="newBookmarkForm" class="bookmark-inputs">
+            <input type="text" id="bmTitle" placeholder="Label" required>
+            <input type="url" id="bmTargetUrl" placeholder="https://..." required>
             <button type="submit" class="btn btn-primary">+</button>
           </form>
         </div>
       </section>
 
-      <section class="card">
-        <div class="card-header">
-          <h4>Quick Notes</h4>
+      <section class="panel">
+        <div class="panel-header">
+          <h2>Quick Notes</h2>
         </div>
-        <div class="card-body">
-          <textarea id="notesArea" placeholder="Scratchpad for endpoints, tokens, commands..."></textarea>
+        <div class="panel-body">
+          <textarea id="scratchPad" placeholder="Scratchpad for endpoints, tokens, commands..."></textarea>
         </div>
       </section>
     </main>
